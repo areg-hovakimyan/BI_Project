@@ -1,25 +1,13 @@
--- Create a new database named ORDER_DDS
-CREATE DATABASE ORDER_DDS;
-GO
-
--- Verify that the database was created
 USE ORDER_DDS;
 GO
 
--- Check database properties to ensure it's active
-SELECT name, database_id, create_date
-FROM sys.databases
-WHERE name = 'ORDER_DDS';
-GO
-
--- Dim_SOR Table
 CREATE TABLE dbo.Dim_SOR (
     SORKey INT IDENTITY(1,1) PRIMARY KEY,
     StagingTableName NVARCHAR(255) NOT NULL,
     TablePrimaryKeyColumn NVARCHAR(255) NOT NULL
 );
 
--- DimCategories Table (SCD1)
+-- SCD1
 CREATE TABLE dbo.DimCategories (
     CategoryKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -28,7 +16,7 @@ CREATE TABLE dbo.DimCategories (
     Description NVARCHAR(MAX)
 );
 
--- DimCustomers Table (SCD2)
+-- SCD2
 CREATE TABLE dbo.DimCustomers (
     CustomerKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -45,7 +33,7 @@ CREATE TABLE dbo.DimCustomers (
     Fax NVARCHAR(255)
 );
 
--- DimEmployees Table (SCD1 with delete)
+-- SCD1 with delete
 CREATE TABLE dbo.DimEmployees (
     EmployeeKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -69,7 +57,7 @@ CREATE TABLE dbo.DimEmployees (
     IsDeleted BIT
 );
 
--- DimProducts Table (SCD1)
+-- SCD1
 CREATE TABLE dbo.DimProducts (
     ProductKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -85,7 +73,7 @@ CREATE TABLE dbo.DimProducts (
     Discontinued BIT
 );
 
--- DimRegion Table (SCD4)
+-- SCD4
 CREATE TABLE dbo.DimRegion (
     RegionKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -94,7 +82,16 @@ CREATE TABLE dbo.DimRegion (
     PreviousRegionDescription NVARCHAR(255)
 );
 
--- DimShippers Table (SCD1 with delete)
+CREATE TABLE dbo.HistoricalRegion (
+    HistoricalRegionKey INT IDENTITY(1,1) PRIMARY KEY,
+    RegionID INT NOT NULL,
+    RegionDescription NVARCHAR(255),
+    EffectiveDate DATETIME NOT NULL,
+    ExpirationDate DATETIME NULL,
+    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionID)
+);
+
+-- SCD1 with delete
 CREATE TABLE dbo.DimShippers (
     ShipperKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -104,7 +101,7 @@ CREATE TABLE dbo.DimShippers (
     IsDeleted BIT
 );
 
--- DimSuppliers Table (SCD3)
+-- SCD3
 CREATE TABLE dbo.DimSuppliers (
     SupplierKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -124,7 +121,7 @@ CREATE TABLE dbo.DimSuppliers (
     PreviousRegion NVARCHAR(255)
 );
 
--- DimTerritories Table (SCD4)
+-- SCD4
 CREATE TABLE dbo.DimTerritories (
     TerritoryKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -132,6 +129,16 @@ CREATE TABLE dbo.DimTerritories (
     TerritoryDescription NVARCHAR(255),
     RegionID INT FOREIGN KEY REFERENCES dbo.DimRegion(RegionKey),
     PreviousTerritoryDescription NVARCHAR(255)
+);
+
+CREATE TABLE dbo.HistoricalTerritories (
+    HistoricalTerritoryKey INT IDENTITY(1,1) PRIMARY KEY,
+    TerritoryID NVARCHAR(20) NOT NULL,
+    TerritoryDescription NVARCHAR(255),
+    RegionID INT,
+    EffectiveDate DATETIME NOT NULL,
+    ExpirationDate DATETIME NULL,
+    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionID) 
 );
 
 -- FactOrders Table
