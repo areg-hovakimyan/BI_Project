@@ -1,4 +1,5 @@
 import configparser
+import pyodbc
 
 def get_connection_string(config_path='sql_server_config.cfg'):
     config = configparser.ConfigParser()
@@ -17,7 +18,7 @@ def get_connection_string(config_path='sql_server_config.cfg'):
     return connection_string
 
 def execute_sql_script(connection_string, script_path):
-    import pyodbc
+    
     with open(script_path, 'r') as file:
         query = file.read()
 
