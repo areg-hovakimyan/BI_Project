@@ -188,16 +188,16 @@ CREATE TABLE dbo.FactOrders (
 );
 
 -- Insert Into Dim_SOR Table
-IF OBJECT_ID('dbo.Dim_SOR', 'U') IS NOT NULL
-BEGIN
-    INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
-    VALUES
-        ('Staging_Categories', 'CategoryKey'),
-        ('Staging_Customers', 'CustomerKey'),
-        ('Staging_Employees', 'EmployeeKey'),
-        ('Staging_Products', 'ProductKey'),
-        ('Staging_Region', 'RegionKey'),
-        ('Staging_Shippers', 'ShipperKey'),
-        ('Staging_Suppliers', 'SupplierKey'),
-        ('Staging_Territories', 'TerritoryKey');
-END;
+-- IF OBJECT_ID('dbo.Dim_SOR', 'U') IS NOT NULL
+-- BEGIN
+--     INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
+--     VALUES
+--         ('Staging_Categories', 'CategoryKey'),
+--         ('Staging_Customers', 'CustomerKey'),
+--         ('Staging_Employees', 'EmployeeKey'),
+--         ('Staging_Products', 'ProductKey'),
+--         ('Staging_Region', 'RegionKey'),
+--         ('Staging_Shippers', 'ShipperKey'),
+--         ('Staging_Suppliers', 'SupplierKey'),
+--         ('Staging_Territories', 'TerritoryKey');
+-- END;
