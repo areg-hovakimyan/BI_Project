@@ -1,13 +1,18 @@
 USE ORDER_DDS;
 GO
 
+-- Dim_SOR Table
+IF OBJECT_ID('dbo.Dim_SOR', 'U') IS NOT NULL
+    DROP TABLE dbo.Dim_SOR;
 CREATE TABLE dbo.Dim_SOR (
     SORKey INT IDENTITY(1,1) PRIMARY KEY,
     StagingTableName NVARCHAR(255) NOT NULL,
     TablePrimaryKeyColumn NVARCHAR(255) NOT NULL
 );
 
--- SCD1
+-- DimCategories Table
+IF OBJECT_ID('dbo.DimCategories', 'U') IS NOT NULL
+    DROP TABLE dbo.DimCategories;
 CREATE TABLE dbo.DimCategories (
     CategoryKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -16,7 +21,9 @@ CREATE TABLE dbo.DimCategories (
     Description NVARCHAR(MAX)
 );
 
--- SCD2
+-- DimCustomers Table
+IF OBJECT_ID('dbo.DimCustomers', 'U') IS NOT NULL
+    DROP TABLE dbo.DimCustomers;
 CREATE TABLE dbo.DimCustomers (
     CustomerKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -33,7 +40,9 @@ CREATE TABLE dbo.DimCustomers (
     Fax NVARCHAR(255)
 );
 
--- SCD1 with delete
+-- DimEmployees Table
+IF OBJECT_ID('dbo.DimEmployees', 'U') IS NOT NULL
+    DROP TABLE dbo.DimEmployees;
 CREATE TABLE dbo.DimEmployees (
     EmployeeKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -57,7 +66,9 @@ CREATE TABLE dbo.DimEmployees (
     IsDeleted BIT
 );
 
--- SCD1
+-- DimProducts Table
+IF OBJECT_ID('dbo.DimProducts', 'U') IS NOT NULL
+    DROP TABLE dbo.DimProducts;
 CREATE TABLE dbo.DimProducts (
     ProductKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -73,7 +84,9 @@ CREATE TABLE dbo.DimProducts (
     Discontinued BIT
 );
 
--- SCD4
+-- DimRegion Table
+IF OBJECT_ID('dbo.DimRegion', 'U') IS NOT NULL
+    DROP TABLE dbo.DimRegion;
 CREATE TABLE dbo.DimRegion (
     RegionKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -82,6 +95,9 @@ CREATE TABLE dbo.DimRegion (
     PreviousRegionDescription NVARCHAR(255)
 );
 
+-- HistoricalRegion Table
+IF OBJECT_ID('dbo.HistoricalRegion', 'U') IS NOT NULL
+    DROP TABLE dbo.HistoricalRegion;
 CREATE TABLE dbo.HistoricalRegion (
     HistoricalRegionKey INT IDENTITY(1,1) PRIMARY KEY,
     RegionID INT NOT NULL,
@@ -91,7 +107,9 @@ CREATE TABLE dbo.HistoricalRegion (
     FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionID)
 );
 
--- SCD1 with delete
+-- DimShippers Table
+IF OBJECT_ID('dbo.DimShippers', 'U') IS NOT NULL
+    DROP TABLE dbo.DimShippers;
 CREATE TABLE dbo.DimShippers (
     ShipperKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -101,7 +119,9 @@ CREATE TABLE dbo.DimShippers (
     IsDeleted BIT
 );
 
--- SCD3
+-- DimSuppliers Table
+IF OBJECT_ID('dbo.DimSuppliers', 'U') IS NOT NULL
+    DROP TABLE dbo.DimSuppliers;
 CREATE TABLE dbo.DimSuppliers (
     SupplierKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -121,7 +141,9 @@ CREATE TABLE dbo.DimSuppliers (
     PreviousRegion NVARCHAR(255)
 );
 
--- SCD4
+-- DimTerritories Table
+IF OBJECT_ID('dbo.DimTerritories', 'U') IS NOT NULL
+    DROP TABLE dbo.DimTerritories;
 CREATE TABLE dbo.DimTerritories (
     TerritoryKey INT IDENTITY(1,1) PRIMARY KEY,
     SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
@@ -131,6 +153,9 @@ CREATE TABLE dbo.DimTerritories (
     PreviousTerritoryDescription NVARCHAR(255)
 );
 
+-- HistoricalTerritories Table
+IF OBJECT_ID('dbo.HistoricalTerritories', 'U') IS NOT NULL
+    DROP TABLE dbo.HistoricalTerritories;
 CREATE TABLE dbo.HistoricalTerritories (
     HistoricalTerritoryKey INT IDENTITY(1,1) PRIMARY KEY,
     TerritoryID NVARCHAR(20) NOT NULL,
@@ -142,6 +167,8 @@ CREATE TABLE dbo.HistoricalTerritories (
 );
 
 -- FactOrders Table
+IF OBJECT_ID('dbo.FactOrders', 'U') IS NOT NULL
+    DROP TABLE dbo.FactOrders;
 CREATE TABLE dbo.FactOrders (
     FactOrderKey INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT NOT NULL,
@@ -160,17 +187,17 @@ CREATE TABLE dbo.FactOrders (
     TotalAmount AS (Quantity * UnitPrice * (1 - Discount)) PERSISTED
 );
 
--- check this later
-INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
-VALUES
-    ('Staging_Categories', 'CategoryKey'),
-    ('Staging_Customers', 'CustomerKey'),
-    ('Staging_Employees', 'EmployeeKey'),
-    ('Staging_Products', 'ProductKey'),
-    ('Staging_Region', 'RegionKey'),
-    ('Staging_Shippers', 'ShipperKey'),
-    ('Staging_Suppliers', 'SupplierKey'),
-    ('Staging_Territories', 'TerritoryKey');
-
-
-
+-- Insert Into Dim_SOR Table
+IF OBJECT_ID('dbo.Dim_SOR', 'U') IS NOT NULL
+BEGIN
+    INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
+    VALUES
+        ('Staging_Categories', 'CategoryKey'),
+        ('Staging_Customers', 'CustomerKey'),
+        ('Staging_Employees', 'EmployeeKey'),
+        ('Staging_Products', 'ProductKey'),
+        ('Staging_Region', 'RegionKey'),
+        ('Staging_Shippers', 'ShipperKey'),
+        ('Staging_Suppliers', 'SupplierKey'),
+        ('Staging_Territories', 'TerritoryKey');
+END;

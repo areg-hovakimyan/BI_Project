@@ -1,6 +1,6 @@
--- Create staging tables for each source table with staging_raw_id (IDENTITY)
-
 -- Categories Table
+IF OBJECT_ID('dbo.Staging_Categories', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Categories;
 CREATE TABLE dbo.Staging_Categories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     CategoryID INT,
@@ -10,6 +10,8 @@ CREATE TABLE dbo.Staging_Categories (
 );
 
 -- Customers Table
+IF OBJECT_ID('dbo.Staging_Customers', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Customers;
 CREATE TABLE dbo.Staging_Customers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     CustomerID NVARCHAR(5),
@@ -26,6 +28,8 @@ CREATE TABLE dbo.Staging_Customers (
 );
 
 -- Employees Table
+IF OBJECT_ID('dbo.Staging_Employees', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Employees;
 CREATE TABLE dbo.Staging_Employees (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     EmployeeID INT,
@@ -48,6 +52,8 @@ CREATE TABLE dbo.Staging_Employees (
 );
 
 -- Order Details Table
+IF OBJECT_ID('dbo.Staging_OrderDetails', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_OrderDetails;
 CREATE TABLE dbo.Staging_OrderDetails (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -58,6 +64,8 @@ CREATE TABLE dbo.Staging_OrderDetails (
 );
 
 -- Orders Table
+IF OBJECT_ID('dbo.Staging_Orders', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Orders;
 CREATE TABLE dbo.Staging_Orders (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -78,6 +86,8 @@ CREATE TABLE dbo.Staging_Orders (
 );
 
 -- Products Table
+IF OBJECT_ID('dbo.Staging_Products', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Products;
 CREATE TABLE dbo.Staging_Products (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     ProductID INT,
@@ -93,6 +103,8 @@ CREATE TABLE dbo.Staging_Products (
 );
 
 -- Region Table
+IF OBJECT_ID('dbo.Staging_Region', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Region;
 CREATE TABLE dbo.Staging_Region (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     RegionID INT,
@@ -100,6 +112,8 @@ CREATE TABLE dbo.Staging_Region (
 );
 
 -- Shippers Table
+IF OBJECT_ID('dbo.Staging_Shippers', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Shippers;
 CREATE TABLE dbo.Staging_Shippers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     ShipperID INT,
@@ -108,6 +122,8 @@ CREATE TABLE dbo.Staging_Shippers (
 );
 
 -- Suppliers Table
+IF OBJECT_ID('dbo.Staging_Suppliers', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Suppliers;
 CREATE TABLE dbo.Staging_Suppliers (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     SupplierID INT,
@@ -125,6 +141,8 @@ CREATE TABLE dbo.Staging_Suppliers (
 );
 
 -- Territories Table
+IF OBJECT_ID('dbo.Staging_Territories', 'U') IS NOT NULL
+    DROP TABLE dbo.Staging_Territories;
 CREATE TABLE dbo.Staging_Territories (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     TerritoryID NVARCHAR(20),
