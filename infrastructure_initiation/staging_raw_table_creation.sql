@@ -65,7 +65,6 @@ CREATE TABLE dbo.Staging_OrderDetails (
     Discount FLOAT
 );
 
--- Orders Table
 USE ORDER_DDS;
 GO
 IF OBJECT_ID('dbo.Staging_Orders', 'U') IS NOT NULL
@@ -89,6 +88,7 @@ CREATE TABLE dbo.Staging_Orders (
     ShipCountry NVARCHAR(255),
     TerritoryID INT
 );
+
 
 
 -- Products Table
