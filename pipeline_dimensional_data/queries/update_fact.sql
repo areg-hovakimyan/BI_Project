@@ -1,15 +1,18 @@
--- Parameters
-DECLARE @database_name NVARCHAR(50) = 'ORDER_DDS';
-DECLARE @schema_name NVARCHAR(50) = 'dbo';
-DECLARE @table_name NVARCHAR(50) = 'FactOrders';
-DECLARE @start_date DATE = '2024-01-01';
-DECLARE @end_date DATE = '2024-12-31';
+USE [ORDER_DDS]; 
+GO
 
--- Dynamic SQL query
-DECLARE @sql NVARCHAR(MAX);
+DECLARE @DatabaseName NVARCHAR(128) = 'ORDER_DDS';
+DECLARE @SchemaName NVARCHAR(128) = 'dbo';
+DECLARE @TableName NVARCHAR(128) = 'FactOrders'; 
+DECLARE @StartDate DATETIME = '2024-01-01';
+DECLARE @EndDate DATETIME = '2024-12-31';
 
-SET @sql = '
-INSERT INTO [' + @database_name + '].[' + @schema_name + '].[' + @table_name + '] (
+-- Example: Combining INSERT and MERGE functionality
+DECLARE @SQL NVARCHAR(MAX);
+
+SET @SQL = '
+-- Insert new orders
+INSERT INTO ' + @DatabaseName + '.' + @SchemaName + '.' + @TableName + ' (
     OrderID,
     CustomerKey,
     EmployeeKey,
@@ -33,27 +36,37 @@ SELECT
     od.UnitPrice,
     od.Discount
 FROM
-    [' + @database_name + '].[' + @schema_name + '].[Staging_Orders] so
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[Staging_OrderDetails] od
+    ' + @DatabaseName + '.dbo.Staging_Orders AS so
+LEFT JOIN ' + @DatabaseName + '.dbo.Staging_OrderDetails AS od
     ON so.OrderID = od.OrderID
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimCustomers] dc
+LEFT JOIN ' + @DatabaseName + '.dbo.DimCustomers AS dc
     ON so.CustomerID = dc.CustomerID
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimEmployees] de
+LEFT JOIN ' + @DatabaseName + '.dbo.DimEmployees AS de
     ON so.EmployeeID = de.EmployeeID
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimProducts] dp
+LEFT JOIN ' + @DatabaseName + '.dbo.DimProducts AS dp
     ON od.ProductID = dp.ProductID
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimRegion] dr
-    ON so.TerritoryID = dr.RegionID
-LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimShippers] ds
+LEFT JOIN ' + @DatabaseName + '.dbo.DimShippers AS ds
     ON so.ShipVia = ds.ShipperID
 WHERE
-    so.OrderDate BETWEEN @start_date AND @end_date
-    AND dc.CustomerKey IS NOT NULL
-    AND de.EmployeeKey IS NOT NULL
-    AND dp.ProductKey IS NOT NULL
-    AND dr.RegionKey IS NOT NULL
-    AND ds.ShipperKey IS NOT NULL;
+    so.OrderDate BETWEEN @Start AND @End;
+
+-- Merge updates
+MERGE INTO ' + @DatabaseName + '.' + @SchemaName + '.' + @TableName + ' AS TARGET
+USING (
+    SELECT 
+        so.OrderID,
+        dc.CustomerKey,
+        so.OrderDate
+    FROM ' + @DatabaseName + '.dbo.Staging_Orders AS so
+    JOIN ' + @DatabaseName + '.dbo.DimCustomers AS dc ON so.CustomerID = dc.CustomerID
+    WHERE so.OrderDate BETWEEN @Start AND @End
+) AS SOURCE
+ON TARGET.OrderID = SOURCE.OrderID
+WHEN MATCHED THEN
+    UPDATE SET
+        TARGET.CustomerKey = SOURCE.CustomerKey,
+        TARGET.OrderDate = SOURCE.OrderDate;
 ';
 
 -- Execute the dynamic SQL
-EXEC sp_executesql @sql, N'@start_date DATE, @end_date DATE', @start_date, @end_date;
+EXEC sp_executesql @SQL, N'@Start DATETIME, @End DATETIME', @Start = @StartDate, @End = @EndDate;

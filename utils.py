@@ -1,67 +1,75 @@
 import configparser
-import pyodbc
-import logging
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def get_connection_string(config_path='sql_server_config.cfg'):
+def load_config(config_path):
     """
-    Reads the configuration file to construct a connection string for SQL Server.
-    """
-    try:
-        config = configparser.ConfigParser()
-        config.read(config_path)
-
-        if 'sql_server' not in config:
-            raise KeyError("Missing 'sql_server' section in configuration file.")
-
-        sql_config = config['sql_server']
-        connection_string = (
-            f"Driver={{ODBC Driver 17 for SQL Server}};"
-            f"Server={sql_config['host']},{sql_config['port']};"
-            f"Database={sql_config['database']};"
-        )
-
-        if 'user' in sql_config and 'password' in sql_config:
-            connection_string += f"User ID={sql_config['user']};Password={sql_config['password']};"
-
-        return connection_string
-
-    except Exception as e:
-        logging.error(f"Error while reading connection string: {e}")
-        raise
-
-def execute_sql_script(connection_string, script_path, parameters=None):
-    """
-    Executes a SQL script from a file against a SQL Server database.
+    Loads database configuration from a .cfg file.
     
     Args:
-        connection_string (str): The connection string for the database.
-        script_path (str): Path to the SQL script file.
-        parameters (tuple): Parameters for the SQL query, if any.
+        config_path (str): Path to the configuration file.
+    
+    Returns:
+        dict: Database connection parameters.
+    """
+    config = configparser.ConfigParser()
+    config.read(config_path)
+    # Assuming section 'SQLServer' exists and contains necessary details
+    db_config = config['SQLServer']
+    return db_config
+
+def read_sql_file(file_path):
+    """
+    Reads an SQL file from the given path and returns the SQL command as a string.
+
+    Args:
+        file_path (str): The file path to the SQL script.
+
+    Returns:
+        str: The content of the SQL file as a single string.
+    """
+    with open(file_path, 'r') as file:
+        sql_command = file.read()
+    return sql_command
+
+def execute_sql_script(conn_str, sql_command):
+    """
+    Executes the given SQL command using SQLAlchemy.
+
+    Args:
+        conn_str (str): SQLAlchemy connection string.
+        sql_command (str): SQL command to execute.
+
+    Returns:
+        None
     """
     try:
-        with open(script_path, 'r', encoding='utf-8') as file:
-            query = file.read()
-
-        with pyodbc.connect(connection_string) as conn:
-            cursor = conn.cursor()
-            if parameters:
-                cursor.execute(query, parameters)
-            else:
-                cursor.execute(query)
-            conn.commit()
-            logging.info(f"Successfully executed script: {script_path}")
-
-    except FileNotFoundError:
-        logging.error(f"SQL script not found: {script_path}")
-        raise
-
-    except pyodbc.Error as e:
-        logging.error(f"Database error while executing {script_path}: {e}")
-        raise
-
+        # Creating an engine and connecting to the database
+        engine = create_engine(conn_str)
+        with engine.connect() as connection:
+            result = connection.execute(sql_command)
+            # Commit if needed (SQLAlchemy commits DDL auto but DML needs explicit commit)
+            connection.commit()
+            print(f"SQL script executed successfully, affected {result.rowcount} rows.")
     except Exception as e:
-        logging.error(f"Unexpected error while executing {script_path}: {e}")
-        raise
+        print(f"An error occurred: {e}")
+
+def load_and_execute_sql_file(config_path, file_path):
+    """
+    Loads SQL commands from a file and executes them on a database using SQLAlchemy.
+
+    Args:
+        config_path (str): Path to the database configuration file.
+        file_path (str): Path to the SQL file to be executed.
+
+    Returns:
+        None
+    """
+    # Load database configuration
+    db_config = load_config(config_path)
+    # Create SQLAlchemy connection string
+    conn_str = f'mssql+pyodbc://{db_config["User"]}:{db_config["Password"]}@{db_config["Server"]}/{db_config["Database"]}?driver={db_config["Driver"]}'
+    # Reading SQL from file
+    sql_command = read_sql_file(file_path)
+    # Executing SQL
+    execute_sql_script(conn_str, sql_command)
