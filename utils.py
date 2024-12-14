@@ -1,6 +1,5 @@
+import pyodbc
 import configparser
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 def load_config(config_path):
     """
@@ -34,29 +33,31 @@ def read_sql_file(file_path):
 
 def execute_sql_script(conn_str, sql_command):
     """
-    Executes the given SQL command using SQLAlchemy.
+    Executes the given SQL command on the database specified by the connection string.
 
     Args:
-        conn_str (str): SQLAlchemy connection string.
+        conn_str (str): Database connection string.
         sql_command (str): SQL command to execute.
 
     Returns:
         None
     """
     try:
-        # Creating an engine and connecting to the database
-        engine = create_engine(conn_str)
-        with engine.connect() as connection:
-            result = connection.execute(sql_command)
-            # Commit if needed (SQLAlchemy commits DDL auto but DML needs explicit commit)
-            connection.commit()
-            print(f"SQL script executed successfully, affected {result.rowcount} rows.")
+        # Establishing the connection
+        with pyodbc.connect(conn_str, timeout=10) as conn:
+            # Creating a cursor object using the cursor() method
+            cursor = conn.cursor()
+            # Executing the SQL command
+            cursor.execute(sql_command)
+            # Committing the transaction
+            conn.commit()
+            print("SQL script executed successfully.")
     except Exception as e:
         print(f"An error occurred: {e}")
 
 def load_and_execute_sql_file(config_path, file_path):
     """
-    Loads SQL commands from a file and executes them on a database using SQLAlchemy.
+    Loads SQL commands from a file and executes them on a database using config.
 
     Args:
         config_path (str): Path to the database configuration file.
@@ -67,8 +68,8 @@ def load_and_execute_sql_file(config_path, file_path):
     """
     # Load database configuration
     db_config = load_config(config_path)
-    # Create SQLAlchemy connection string
-    conn_str = f'mssql+pyodbc://{db_config["User"]}:{db_config["Password"]}@{db_config["Server"]}/{db_config["Database"]}?driver={db_config["Driver"]}'
+    # Create connection string
+    conn_str = f'DRIVER={db_config["Driver"]};SERVER={db_config["Server"]};DATABASE={db_config["Database"]};UID={db_config["User"]};PWD={db_config["Password"]}'
     # Reading SQL from file
     sql_command = read_sql_file(file_path)
     # Executing SQL
