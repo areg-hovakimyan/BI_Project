@@ -1,10 +1,15 @@
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'ORDER_DDS')
+USE master;
+
+IF EXISTS (SELECT name FROM sys.databases WHERE name = 'ORDER_DDS')
 BEGIN
-    CREATE DATABASE ORDER_DDS;
-    PRINT 'Database ORDER_DDS created successfully.';
+    DROP DATABASE ORDER_DDS;
+    PRINT 'Database ORDER_DDS dropped successfully.';
 END
 ELSE
 BEGIN
-    PRINT 'Database ORDER_DDS already exists.';
+    PRINT 'Database ORDER_DDS does not exist.';
 END
 GO
+
+
+
