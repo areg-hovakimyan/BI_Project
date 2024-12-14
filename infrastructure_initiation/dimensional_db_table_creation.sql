@@ -16,6 +16,21 @@ EXEC sp_MSforeachtable 'DROP TABLE ?';
 
 GO
 
+USE ORDER_DDS;
+
+IF OBJECT_ID('dbo.FactOrders_Error', 'U') IS NOT NULL
+    DROP TABLE dbo.FactOrders_Error;
+
+CREATE TABLE dbo.FactOrders_Error (
+    FactOrderErrorID INT IDENTITY(1,1) PRIMARY KEY,
+    OrderID INT NOT NULL,
+    MissingKeyType NVARCHAR(50) NOT NULL,
+    StagingRawID INT NOT NULL,
+    OrderDate DATETIME,
+    ShipDate DATETIME,
+    Quantity SMALLINT,
+    TotalAmount DECIMAL(18,2)
+);
 
 
 -- Dim_SOR Table

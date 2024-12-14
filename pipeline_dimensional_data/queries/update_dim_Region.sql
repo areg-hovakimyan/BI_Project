@@ -7,16 +7,14 @@ USING (
     SELECT 
         staging_raw_id,
         RegionID,
-        RegionDescription,
-        PreviousRegionDescription  -- Assuming this field captures changes for SCD type handling
+        RegionDescription
     FROM Staging_Region
 ) AS SOURCE
 ON TARGET.RegionID = SOURCE.RegionID
 WHEN MATCHED THEN
     UPDATE SET
-        TARGET.RegionDescription = SOURCE.RegionDescription,
-        TARGET.PreviousRegionDescription = SOURCE.PreviousRegionDescription
+        TARGET.RegionDescription = SOURCE.RegionDescription
 WHEN NOT MATCHED BY TARGET THEN
-    INSERT (RegionID, RegionDescription, PreviousRegionDescription, SORKey)
-    VALUES (SOURCE.RegionID, SOURCE.RegionDescription, SOURCE.PreviousRegionDescription, SOURCE.staging_raw_id);
+    INSERT (RegionID, RegionDescription, SORKey)
+    VALUES (SOURCE.RegionID, SOURCE.RegionDescription, SOURCE.staging_raw_id);
 

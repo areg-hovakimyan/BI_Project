@@ -19,5 +19,4 @@ WHEN MATCHED AND (ISNULL(DST.CategoryName, '''') <> ISNULL(SRC.CategoryName, '''
             DST.CategoryName = SRC.CategoryName,
             DST.Description = SRC.Description;';
 
-PRINT @SQL;
 EXEC sp_executesql @SQL;

@@ -1,3 +1,5 @@
+USE ORDER_DDS;
+
 -- Categories Table
 IF OBJECT_ID('dbo.Staging_Categories', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Categories;
@@ -64,8 +66,11 @@ CREATE TABLE dbo.Staging_OrderDetails (
 );
 
 -- Orders Table
+USE ORDER_DDS;
+GO
 IF OBJECT_ID('dbo.Staging_Orders', 'U') IS NOT NULL
     DROP TABLE dbo.Staging_Orders;
+
 CREATE TABLE dbo.Staging_Orders (
     staging_raw_id INT IDENTITY(1,1) PRIMARY KEY,
     OrderID INT,
@@ -84,6 +89,7 @@ CREATE TABLE dbo.Staging_Orders (
     ShipCountry NVARCHAR(255),
     TerritoryID INT
 );
+
 
 -- Products Table
 IF OBJECT_ID('dbo.Staging_Products', 'U') IS NOT NULL

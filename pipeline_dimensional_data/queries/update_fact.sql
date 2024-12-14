@@ -1,6 +1,3 @@
--- update_fact.sql
--- This script inserts data into the FactOrders table using INSERT-based ingestion.
-
 -- Parameters
 DECLARE @database_name NVARCHAR(50) = 'ORDER_DDS';
 DECLARE @schema_name NVARCHAR(50) = 'dbo';
@@ -8,46 +5,55 @@ DECLARE @table_name NVARCHAR(50) = 'FactOrders';
 DECLARE @start_date DATE = '2024-01-01';
 DECLARE @end_date DATE = '2024-12-31';
 
--- Insert new rows into FactOrders
-INSERT INTO [@database_name].[@schema_name].[@table_name] (
+-- Dynamic SQL query
+DECLARE @sql NVARCHAR(MAX);
+
+SET @sql = '
+INSERT INTO [' + @database_name + '].[' + @schema_name + '].[' + @table_name + '] (
     OrderID,
-    Customer_SKey,
-    Employee_SKey,
-    Product_SKey,
+    CustomerKey,
+    EmployeeKey,
+    ProductKey,
     OrderDate,
-    ShipDate,
-    Region_SKey,
-    Shipper_SKey,
+    ShippedDate,
+    ShipperKey,
     Quantity,
-    TotalAmount
+    UnitPrice,
+    Discount
 )
 SELECT
-    sr.OrderID,
-    dc.Customer_SKey,
-    de.Employee_SKey,
-    dp.Product_SKey,
-    sr.OrderDate,
-    sr.ShipDate,
-    dr.Region_SKey,
-    ds.Shipper_SKey,
-    sr.Quantity,
-    sr.TotalAmount
+    so.OrderID,
+    dc.CustomerKey,
+    de.EmployeeKey,
+    dp.ProductKey,
+    so.OrderDate,
+    so.ShippedDate,
+    ds.ShipperKey,
+    od.Quantity,
+    od.UnitPrice,
+    od.Discount
 FROM
-    [@database_name].[@schema_name].[staging_raw_orders] sr
-LEFT JOIN [@database_name].[@schema_name].[DimCustomers] dc
-    ON sr.CustomerID = dc.Customer_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimEmployees] de
-    ON sr.EmployeeID = de.Employee_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimProducts] dp
-    ON sr.ProductID = dp.Product_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimRegion] dr
-    ON sr.RegionID = dr.Region_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimShippers] ds
-    ON sr.ShipVia = ds.Shipper_NKey
+    [' + @database_name + '].[' + @schema_name + '].[Staging_Orders] so
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[Staging_OrderDetails] od
+    ON so.OrderID = od.OrderID
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimCustomers] dc
+    ON so.CustomerID = dc.CustomerID
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimEmployees] de
+    ON so.EmployeeID = de.EmployeeID
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimProducts] dp
+    ON od.ProductID = dp.ProductID
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimRegion] dr
+    ON so.TerritoryID = dr.RegionID
+LEFT JOIN [' + @database_name + '].[' + @schema_name + '].[DimShippers] ds
+    ON so.ShipVia = ds.ShipperID
 WHERE
-    sr.OrderDate BETWEEN @start_date AND @end_date
-    AND dc.Customer_SKey IS NOT NULL
-    AND de.Employee_SKey IS NOT NULL
-    AND dp.Product_SKey IS NOT NULL
-    AND dr.Region_SKey IS NOT NULL
-    AND ds.Shipper_SKey IS NOT NULL;
+    so.OrderDate BETWEEN @start_date AND @end_date
+    AND dc.CustomerKey IS NOT NULL
+    AND de.EmployeeKey IS NOT NULL
+    AND dp.ProductKey IS NOT NULL
+    AND dr.RegionKey IS NOT NULL
+    AND ds.ShipperKey IS NOT NULL;
+';
+
+-- Execute the dynamic SQL
+EXEC sp_executesql @sql, N'@start_date DATE, @end_date DATE', @start_date, @end_date;
