@@ -82,6 +82,3 @@ The dashboard provides a comprehensive view of business metrics, with features s
 - Davit
 - Lusine
 
-## License
-
-This project is licensed under the MIT License.
