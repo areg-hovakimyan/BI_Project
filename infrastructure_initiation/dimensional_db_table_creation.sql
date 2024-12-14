@@ -163,14 +163,14 @@ CREATE TABLE dbo.FactOrders (
     TotalAmount AS (Quantity * UnitPrice * (1 - Discount)) PERSISTED
 );
 
--- Insert Into Dim_SOR Table
-    INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
-    VALUES
-        ('Staging_Categories', 'CategoryKey'),
-        ('Staging_Customers', 'CustomerKey'),
-        ('Staging_Employees', 'EmployeeKey'),
-        ('Staging_Products', 'ProductKey'),
-        ('Staging_Region', 'RegionKey'),
-        ('Staging_Shippers', 'ShipperKey'),
-        ('Staging_Suppliers', 'SupplierKey'),
-        ('Staging_Territories', 'TerritoryKey');
+-- -- Insert Into Dim_SOR Table
+--     INSERT INTO dbo.Dim_SOR (StagingTableName, TablePrimaryKeyColumn)
+--     VALUES
+--         ('Staging_Categories', 'CategoryKey'),
+--         ('Staging_Customers', 'CustomerKey'),
+--         ('Staging_Employees', 'EmployeeKey'),
+--         ('Staging_Products', 'ProductKey'),
+--         ('Staging_Region', 'RegionKey'),
+--         ('Staging_Shippers', 'ShipperKey'),
+--         ('Staging_Suppliers', 'SupplierKey'),
+--         ('Staging_Territories', 'TerritoryKey');

@@ -1,53 +1,37 @@
--- update_fact.sql
--- This script inserts data into the FactOrders table using INSERT-based ingestion.
+USE [ORDER_DDS]; 
+GO
 
--- Parameters
-DECLARE @database_name NVARCHAR(50) = 'ORDER_DDS';
-DECLARE @schema_name NVARCHAR(50) = 'dbo';
-DECLARE @table_name NVARCHAR(50) = 'FactOrders';
-DECLARE @start_date DATE = '2024-01-01';
-DECLARE @end_date DATE = '2024-12-31';
+DECLARE @DatabaseName NVARCHAR(128) = 'ORDER_DDS';
+DECLARE @SchemaName NVARCHAR(128) = 'dbo';
+DECLARE @TableName NVARCHAR(128) = 'FactOrders'; 
+DECLARE @StartDate DATETIME = '2024-01-01';
+DECLARE @EndDate DATETIME = '2024-12-31';
 
--- Insert new rows into FactOrders
-INSERT INTO [@database_name].[@schema_name].[@table_name] (
-    OrderID,
-    Customer_SKey,
-    Employee_SKey,
-    Product_SKey,
-    OrderDate,
-    ShipDate,
-    Region_SKey,
-    Shipper_SKey,
-    Quantity,
-    TotalAmount
-)
-SELECT
-    sr.OrderID,
-    dc.Customer_SKey,
-    de.Employee_SKey,
-    dp.Product_SKey,
-    sr.OrderDate,
-    sr.ShipDate,
-    dr.Region_SKey,
-    ds.Shipper_SKey,
-    sr.Quantity,
-    sr.TotalAmount
-FROM
-    [@database_name].[@schema_name].[staging_raw_orders] sr
-LEFT JOIN [@database_name].[@schema_name].[DimCustomers] dc
-    ON sr.CustomerID = dc.Customer_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimEmployees] de
-    ON sr.EmployeeID = de.Employee_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimProducts] dp
-    ON sr.ProductID = dp.Product_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimRegion] dr
-    ON sr.RegionID = dr.Region_NKey
-LEFT JOIN [@database_name].[@schema_name].[DimShippers] ds
-    ON sr.ShipVia = ds.Shipper_NKey
-WHERE
-    sr.OrderDate BETWEEN @start_date AND @end_date
-    AND dc.Customer_SKey IS NOT NULL
-    AND de.Employee_SKey IS NOT NULL
-    AND dp.Product_SKey IS NOT NULL
-    AND dr.Region_SKey IS NOT NULL
-    AND ds.Shipper_SKey IS NOT NULL;
+-- Dynamic SQL to accommodate flexible database, schema, and table names
+DECLARE @SQL NVARCHAR(MAX);
+
+SET @SQL = 'MERGE INTO ' + @DatabaseName + '.' + @SchemaName + '.' + @TableName + ' AS TARGET
+USING (
+    SELECT 
+        s.staging_raw_id,
+        d.SORKey,
+        s.OrderID,
+        s.CustomerID,
+        s.OrderDate,
+        s.TotalAmount
+    FROM ' + @DatabaseName + '.dbo.Staging_Orders AS s
+    JOIN ' + @DatabaseName + '.dbo.Dim_SOR AS d ON s.staging_raw_id = d.staging_raw_id
+    WHERE s.OrderDate BETWEEN @Start AND @End
+) AS SOURCE
+ON TARGET.OrderID = SOURCE.OrderID
+WHEN MATCHED AND TARGET.OrderDate BETWEEN @Start AND @End THEN
+    UPDATE SET
+        TARGET.CustomerID = SOURCE.CustomerID,
+        TARGET.OrderDate = SOURCE.OrderDate,
+        TARGET.TotalAmount = SOURCE.TotalAmount
+WHEN NOT MATCHED BY TARGET AND SOURCE.OrderDate BETWEEN @Start AND @End THEN
+    INSERT (OrderID, CustomerID, OrderDate, TotalAmount)
+    VALUES (SOURCE.OrderID, SOURCE.CustomerID, SOURCE.OrderDate, SOURCE.TotalAmount);'
+
+-- Execute the dynamic SQL
+EXEC sp_executesql @SQL, N'@Start DATETIME, @End DATETIME', @Start = @StartDate, @End = @EndDate;
