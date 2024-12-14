@@ -1,3 +1,36 @@
+# Dimensional Data Pipeline and Dashboard - Group 8
+
+## Project Overview
+
+This project involves the creation of a Dimensional Data Store (DDS) and the implementation of a data pipeline for processing and transforming raw data into a structured, analyzable format. It also includes the creation of a Power BI dashboard to visualize the processed data. The project was completed as part of the DS 206 course, Group 8.
+
+## Key Features
+
+- **Dimensional Database**: A fully structured DDS with tables following the star schema model, created in SQL Server. 
+- **Data Pipeline**: A Python-based ETL pipeline that extracts data from staging tables, transforms it, and loads it into dimension and fact tables.
+- **Data Integrity**: Includes handling of errors during fact table loading, ensuring data consistency with the help of surrogate keys.
+- **Power BI Dashboard**: A visually rich dashboard, featuring multiple pages with topic-consistent visualizations, slicers, and interactive elements.
+  
+## Project Structure
+
+```plaintext
+├── infrastructure_initiation
+│   ├── dimensional_db_creation.sql
+│   ├── dimensional_db_table_creation.sql
+│   ├── staging_raw_table_creation.sql
+├── pipeline_dimensional_data
+│   ├── flow.py
+│   ├── tasks.py
+│   ├── config.py
+│   ├── queries
+│   ├── logs
+│   ├── main.py
+│   ├── utils.py
+│   ├── logging.py
+├── data
+├── reports
+│   ├── Power_BI_Dashboard.pbix
+└── README.md
 
 ## Main Files and Directories:
 
