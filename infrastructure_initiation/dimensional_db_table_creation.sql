@@ -1,6 +1,23 @@
 USE ORDER_DDS;
 GO
 
+-- Disable constraints
+EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
+
+-- Drop all foreign key constraints
+DECLARE @sql NVARCHAR(MAX) = '';
+SELECT @sql += 'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) 
+            + ' DROP CONSTRAINT ' + QUOTENAME(name) + '; '
+FROM sys.foreign_keys;
+EXEC sp_executesql @sql;
+
+-- Drop all tables
+EXEC sp_MSforeachtable 'DROP TABLE ?';
+
+GO
+
+
+
 -- Dim_SOR Table
 CREATE TABLE dbo.Dim_SOR (
     SORKey INT IDENTITY(1,1) PRIMARY KEY,
@@ -58,6 +75,26 @@ CREATE TABLE dbo.DimEmployees (
     IsDeleted BIT
 );
 
+-- DimSuppliers Table
+CREATE TABLE dbo.DimSuppliers (
+    SupplierKey INT IDENTITY(1,1) PRIMARY KEY,
+    SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
+    SupplierID INT NOT NULL,
+    CompanyName NVARCHAR(255),
+    ContactName NVARCHAR(255),
+    ContactTitle NVARCHAR(255),
+    Address NVARCHAR(255),
+    City NVARCHAR(255),
+    Region NVARCHAR(255),
+    PostalCode NVARCHAR(20),
+    Country NVARCHAR(255),
+    Phone NVARCHAR(255),
+    Fax NVARCHAR(255),
+    HomePage NVARCHAR(MAX),
+    CurrentRegion NVARCHAR(255),
+    PreviousRegion NVARCHAR(255)
+);
+
 -- DimProducts Table
 CREATE TABLE dbo.DimProducts (
     ProductKey INT IDENTITY(1,1) PRIMARY KEY,
@@ -90,7 +127,7 @@ CREATE TABLE dbo.HistoricalRegion (
     RegionDescription NVARCHAR(255),
     EffectiveDate DATETIME NOT NULL,
     ExpirationDate DATETIME NULL,
-    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionID)
+    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionKey)
 );
 
 -- DimShippers Table
@@ -103,25 +140,7 @@ CREATE TABLE dbo.DimShippers (
     IsDeleted BIT
 );
 
--- DimSuppliers Table
-CREATE TABLE dbo.DimSuppliers (
-    SupplierKey INT IDENTITY(1,1) PRIMARY KEY,
-    SORKey INT FOREIGN KEY REFERENCES dbo.Dim_SOR(SORKey),
-    SupplierID INT NOT NULL,
-    CompanyName NVARCHAR(255),
-    ContactName NVARCHAR(255),
-    ContactTitle NVARCHAR(255),
-    Address NVARCHAR(255),
-    City NVARCHAR(255),
-    Region NVARCHAR(255),
-    PostalCode NVARCHAR(20),
-    Country NVARCHAR(255),
-    Phone NVARCHAR(255),
-    Fax NVARCHAR(255),
-    HomePage NVARCHAR(MAX),
-    CurrentRegion NVARCHAR(255),
-    PreviousRegion NVARCHAR(255)
-);
+
 
 -- DimTerritories Table
 CREATE TABLE dbo.DimTerritories (
@@ -141,7 +160,7 @@ CREATE TABLE dbo.HistoricalTerritories (
     RegionID INT,
     EffectiveDate DATETIME NOT NULL,
     ExpirationDate DATETIME NULL,
-    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionID) 
+    FOREIGN KEY (RegionID) REFERENCES dbo.DimRegion(RegionKey) 
 );
 
 -- FactOrders Table
